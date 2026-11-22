@@ -121,7 +121,7 @@ export async function collectWeekData(student: Student, weekStart: string): Prom
       })),
     },
     work_submitted: (
-      (workRes.data ?? []) as {
+      (workRes.data ?? []) as unknown as {
         created_at: string;
         status: string;
         rubric_snapshot: RubricSnapshot | null;
