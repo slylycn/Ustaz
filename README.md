@@ -4,71 +4,6 @@ A web app for independent tutors in Kazakhstan. Only tutors log in. The AI assis
 
 Stack: Next.js 16 (App Router, TypeScript), Tailwind CSS 4 + shadcn/ui, Supabase (Auth, Postgres, Storage, RLS), Google Gemini via `@google/genai` (server only), next-intl (Kazakh `kk` default, Russian `ru`). Deploys to Vercel.
 
-Deploying: see **DEPLOY.md**.
-
-## Local setup
-
-```bash
-npm install
-cp .env.example .env.local   # then fill in the values
-npm run dev                  # http://localhost:3000
-```
-
-Useful checks:
-
-```bash
-npm run check:i18n   # kk.json and ru.json have the same keys
-npm run typecheck
-npm run build
-```
-
-## Supabase setup (one time)
-
-1. **Run the migrations, in order.** Paste each file into Supabase → SQL Editor → Run:
-   - `supabase/migrations/20261122000000_create_tutors.sql`
-   - `supabase/migrations/20261122010000_create_students_lessons.sql`
-   - `supabase/migrations/20261122020000_create_rubrics.sql`
-   - `supabase/migrations/20261122020100_seed_ielts_writing_task2.sql` (safe to run twice)
-   - `supabase/migrations/20261122030000_create_ai_runs.sql`
-   - `supabase/migrations/20261122040000_create_submissions.sql` (also creates the private Storage bucket `submissions`)
-   - `supabase/migrations/20261122050000_create_homework.sql` (also creates the private Storage bucket `homework`)
-   - `supabase/migrations/20261122060000_create_reports.sql` (also creates the public share function `get_shared_report`)
-   - `supabase/migrations/20261122070000_demo_flag.sql`
-2. **Redirect URLs.** Go to Authentication → URL Configuration.
-   - Site URL: `http://localhost:3000` (change to your production domain later)
-   - Redirect URLs: `http://localhost:3000/auth/callback`, `https://*.vercel.app/auth/callback`, and later `https://YOUR-DOMAIN/auth/callback`
-3. **Email.** Magic link is on by default. Supabase's built-in email sender is heavily rate-limited and only delivers to members of your Supabase organization. For real users, add custom SMTP (for example Resend) under Authentication → Emails → SMTP Settings.
-4. **Google (optional).**
-   - In Google Cloud Console, create an OAuth client of type "Web application". Add the authorized redirect URI `https://YOUR-PROJECT-REF.supabase.co/auth/v1/callback`.
-   - In Supabase → Authentication → Providers → Google, enable Google and paste the client ID and secret.
-   - Set `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true`.
-
-## Routes
-
-| Path | What |
-| --- | --- |
-| `/login` (`/ru/login`) | Magic link, plus Google if enabled |
-| `/onboarding` | First-login profile form, saved to `tutors` |
-| `/dashboard` | Today's lessons, work to review, reports to approve, Aqylbek usage this month, load/remove demo data |
-| `/students` | Student list; `/students/new`, `/students/[id]/edit` |
-| `/students/[id]` | Profile with tabs: Lessons, Homework, Grades, Reports (`?tab=`) |
-| `/timetable` | Week view grouped by day (`?week=YYYY-MM-DD`, any day in the week) |
-| `/timetable/new`, `/timetable/[lessonId]/edit` | Add or edit a lesson, mark attendance, delete |
-| `/rubrics` | Platform rubrics + my rubrics, with "last verified" dates; `/rubrics/new`, `/rubrics/[id]`, `/rubrics/[id]/edit` |
-| `/submissions` | Student work: list by status; `/submissions/new`; `/submissions/[id]` to grade, review and approve |
-| `/homework` | Homework list; `/homework/new`; `/homework/[id]` (tabs: student sheet / teacher key); `/homework/[id]/edit`; `/homework/[id]/print` (A4, student sheet only) |
-| `/reports` | Weekly parent reports (`?week=`): draft all, review, approve; `/reports/[id]` to edit, copy for WhatsApp, share |
-| `/p/[token]` | **Public**, no login, noindex: the approved message + that student's approved grades chart |
-| `/auth/callback` | Supabase auth redirect target (not localized) |
-
-Kazakh URLs have no prefix. Russian URLs start with `/ru`.
-
-## Rubrics and the admin
-
-- `owner IS NULL` means a platform rubric: every tutor can read it. A non-null `owner` is that tutor's own rubric.
-- RLS never lets a tutor write a platform rubric. The admin's edits run on the server: the app checks that the signed-in, confirmed email equals `ADMIN_EMAIL`, then writes with `SUPABASE_SERVICE_ROLE_KEY`. Every admin query is limited to `owner IS NULL`.
-- Any tutor can "Make a copy" of a platform rubric and edit the copy.
-
 ## Aqylbek (AI)
 
 - `lib/aqylbek.ts` is the only code that calls Gemini. It is server-only, so `GEMINI_API_KEY` never reaches the browser.
@@ -76,7 +11,6 @@ Kazakh URLs have no prefix. Russian URLs start with `/ru`.
 - Responses are validated with the zod schemas in `lib/aqylbek-schemas.ts`. These must match the JSON shapes in the system prompt.
 - Retries: one more try after invalid JSON, and up to two more after HTTP 429/503 (waiting as Gemini suggests, at most 15 s). After that the tutor sees "Aqylbek is busy, try again in a minute" in kk or ru.
 - Every call writes one row to `ai_runs`: mode, model, tokens, status, attempts and duration. No student text is stored.
-- Dev only: `POST /api/dev/aqylbek` with `{ "task": { "mode": "grade", ... } }` (returns 404 in production).
 
 ## Grading flow
 
