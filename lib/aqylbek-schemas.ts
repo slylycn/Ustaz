@@ -4,9 +4,8 @@ import { HOMEWORK_ITEM_TYPES } from "@/lib/homework-types";
 /**
  * Response schemas for Aqylbek's three modes.
  *
- * ⚠️ PROVISIONAL: these must match the JSON shapes defined in lib/prompts/aqylbek-system.md.
- * The prompt wasn't available when this was written, so every field below is a placeholder.
- * Once the prompt is pasted, align these schemas with it (field names, required vs optional).
+ * The prompt (lib/prompts/aqylbek-system.md) uses slightly different JSON shapes; replies are
+ * translated by lib/aqylbek-normalize.ts before being validated against these schemas.
  *
  * z.object() ignores unknown extra fields, so only missing or wrong-type fields fail validation.
  */

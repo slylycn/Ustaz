@@ -3,6 +3,7 @@
  * unit-tested with a fake `generate` function. lib/aqylbek.ts wires it to Gemini.
  */
 import { AQYLBEK_SCHEMAS, type AqylbekMode, type AqylbekOutput } from "@/lib/aqylbek-schemas";
+import { normalizeOutput } from "@/lib/aqylbek-normalize";
 
 export type GenerateResult = {
   text: string | undefined;
@@ -72,7 +73,8 @@ export function validateOutput<M extends AqylbekMode>(
 ): { ok: true; data: AqylbekOutput<M> } | { ok: false; detail: string } {
   const json = parseJson(text);
   if (json === undefined) return { ok: false, detail: "not JSON" };
-  const result = AQYLBEK_SCHEMAS[mode].safeParse(json);
+  // The prompt's JSON shapes differ slightly from the app's; translate before validating.
+  const result = AQYLBEK_SCHEMAS[mode].safeParse(normalizeOutput(mode, json));
   if (result.success) return { ok: true, data: result.data as AqylbekOutput<M> };
   const issues = result.error.issues
     .slice(0, 5)
