@@ -70,7 +70,7 @@ export async function getLesson(id: string): Promise<Lesson | null> {
 }
 
 // Numeric columns can arrive as strings depending on precision; normalize them.
-function toRubric(row: Record<string, unknown>): Rubric {
+export function toRubric(row: Record<string, unknown>): Rubric {
   return {
     ...(row as Rubric),
     scale_min: Number(row.scale_min),

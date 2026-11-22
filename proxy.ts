@@ -12,7 +12,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except API routes, the auth callback, public share pages (/p/…),
+  // Everything except API routes, the auth callback, the one-click /demo, public share pages (/p/…),
   // Next internals and files with an extension.
-  matcher: "/((?!api|auth|p/|_next|_vercel|.*\\..*).*)",
+  matcher: "/((?!api|auth|demo|p/|_next|_vercel|.*\\..*).*)",
 };
