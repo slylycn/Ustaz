@@ -46,4 +46,4 @@ Lesson times are entered and shown in `Asia/Almaty` and stored as UTC (`timestam
 
 - AI calls run in server code only. `GEMINI_API_KEY` never gets a `NEXT_PUBLIC_` prefix.
 - Every table has RLS, so a tutor sees only their own rows.
-- Every string a user sees lives in `messages/kk.json` and `messages/ru.json`.
+- Every string a user sees lives in `messages/kk.json` and `messages/ru.json`
